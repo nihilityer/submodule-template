@@ -1,2 +1,2 @@
-mod server;
 mod customize;
+mod server;
