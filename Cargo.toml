@@ -8,8 +8,10 @@ nihility-common = { git = "https://github.com/nihilityer/nihility-common", tag =
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.36", features = ["full"] }
 tokio-util = "0.7"
+figment = { version = "0.10", features = ["json", "toml", "yaml"] }
 tracing = "0.1"
 anyhow = "1.0"
+serde_json = "1.0"
 
 [profile.release]
 lto = true
