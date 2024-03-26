@@ -5,20 +5,12 @@ use std::path::Path;
 use anyhow::Result;
 use figment::Figment;
 use figment::providers::{Format, Json, Serialized, Toml, Yaml};
-use nihility_common::{ClientType, ConnectionType, ConnParams, SubmoduleInfo};
+use nihility_common::{ConnParams, GrpcServerConfig, LogConfig, SubmoduleInfo};
 use serde::{Deserialize, Serialize};
 
-use crate::config::customize::CustomizeConfig;
+use crate::config::customize::{CLIENT_TYPE, CONN_CONFIG, CONNECTION_TYPE, CORE_PUBLIC_KEY_PATH, CustomizeConfig, DEFAULT_INSTRUCT, DEFAULT_RECEIVER_SUBMODULE, SUBMODULE_NAME};
 
 mod customize;
-
-const SUBMODULE_NAME: &str = "test";
-const CORE_PUBLIC_KEY_PATH: &str = "./auth/id_rsa.pub";
-const DEFAULT_RECEIVER_SUBMODULE: &str = "test";
-const DEFAULT_INSTRUCT: Vec<&str> = vec!["test1", "test2"];
-const CONNECTION_TYPE: ConnectionType = ConnectionType::GrpcType;
-const CLIENT_TYPE: ClientType = ClientType::NotReceiveType;
-const CONN_CONFIG: &str = r#"{}"#;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct SubmoduleConfig {
@@ -27,19 +19,25 @@ pub struct SubmoduleConfig {
     pub default_receiver_submodule: String,
     pub info: SubmoduleInfo,
     pub log_config: SubmoduleLogConfig,
-    pub instruct_server_config: InstructServerConfig,
-    pub manipulate_server_config: ManipulateServerConfig,
+    pub is_instruct_server_enable: bool,
+    pub is_manipulate_server_enable: bool,
+    // 这个字段可以修改类型，但是必须和当前使用的Server匹配，字段名称不建议修改
+    pub server_config: GrpcServerConfig,
     pub customize_config: CustomizeConfig,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
-pub struct InstructServerConfig {}
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct SubmoduleLogConfig {
+    pub logs: Vec<LogConfig>,
+}
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
-pub struct ManipulateServerConfig {}
-
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
-pub struct SubmoduleLogConfig {}
+impl Default for SubmoduleLogConfig {
+    fn default() -> Self {
+        SubmoduleLogConfig {
+            logs: vec![LogConfig::default()]
+        }
+    }
+}
 
 impl Default for SubmoduleConfig {
     fn default() -> Self {
@@ -52,7 +50,7 @@ impl Default for SubmoduleConfig {
                 conn_params: ConnParams {
                     connection_type: CONNECTION_TYPE,
                     client_type: CLIENT_TYPE,
-                    conn_config: serde_json::from_str(CONN_CONFIG).expect("CONN_CONFIG Format Error!")
+                    conn_config: serde_json::from_str(CONN_CONFIG).expect("CONN_CONFIG Format Error!"),
                 },
             },
             ..Default::default()
